@@ -1,0 +1,247 @@
+***HQ-ACCESS SWITCHES  ****
+
+hostname <DEP>-SW
+line console 0
+password cisco
+login
+exec-timeout 3 0
+exit
+enable password cisco
+service password-encryption 
+banner motd ^UNAUTHORIZED ACCESS THIS MESSAGE WILL BE AN EVIDENCE TO JUDGE YOU^
+no ip domain-lookup
+username moamen password moamen
+ip domain-name moharby.com
+crypto key generate rsa general-keys modulus 1024
+ip ssh version 2
+access-list 2 permit 192.168.10.0 255.255.255.0
+access-list 2 deny any 
+line vty 0 15
+login local
+transport input ssh
+access-class 2 in
+
+vtp domain moharby.com
+vtp password cisco
+vtp mode client
+
+int r f0/1-2
+switchport mode trunk
+
+int r f0/3-20
+switchport mode access 
+switchport access vlan 10
+spanning-tree portfast
+spanning-tree bpduguard enable
+no shutdown
+
+int r f0/21-24
+switchport mode access 
+switchport access vlan 50
+no shutdown
+
+int r g0/1-2
+switchport mode access 
+switchport access vlan 199
+shutdown
+
+
+
+
+
+
+
+****HQ CORE  MLS****
+
+hostname HQ-MLS-1
+line console 0
+password cisco
+login
+exec-timeout 3 0
+exit
+enable password cisco
+service password-encryption 
+banner motd ^UNAUTHORIZED ACCESS THIS MESSAGE WILL BE AN EVIDENCE TO JUDGE YOU^
+no ip domain-lookup
+username moamen password moamen
+ip domain-name moharby.com
+crypto key generate rsa general-keys modulus 1024
+ip ssh version 2
+access-list 2 permit 192.168.10.0 255.255.255.0
+access-list 2 deny any 
+line vty 0 15
+login local
+transport input ssh
+access-class 2 in
+
+vlan 10
+name IT
+vlan 20
+name LAN
+vlan 50
+name WLAN
+
+int r gig1/0/2-6
+switchport mode trunk
+
+-----wlc----
+int gig1/0/10
+switchport mode access 
+switchport access vlan 50
+
+---etherchannel---
+
+int r g1/0/7-9
+channel-group 1 mode active
+ex
+int port-channel 1
+switchport mode trunk
+ex 
+do wr
+
+int vlan 10
+ip add 192.168.10.10 255.255.255.0
+ip helper-address 10.20.20.6
+ip helper-address 10.20.20.5
+standby 10 ip 192.168.10.1
+
+
+int vlan 20
+ip add 172.16.0.10 255.255.0.0
+ip helper-address 10.20.20.6
+ip helper-address 10.20.20.5
+standby 20 ip 172.16.0.1
+
+int vlan 50
+ip add 10.10.0.10 255.255.0.0
+ip helper-address 10.20.20.6
+ip helper-address 10.20.20.5
+standby 50 ip 10.10.0.1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+***  BRANCH ACCESS SWITCHES ****
+
+
+hostname BUSINESS-SW
+line console 0
+password cisco
+login
+exec-timeout 3 0
+exit
+enable password cisco
+service password-encryption 
+banner motd ^UNAUTHORIZED ACCESS THIS MESSAGE WILL BE AN EVIDENCE TO JUDGE YOU^
+no ip domain-lookup
+username moamen password moamen
+ip domain-name moharby.com
+crypto key generate rsa general-keys modulus 1024
+ip ssh version 2
+access-list 2 permit 192.168.10.0 255.255.255.0
+access-list 2 deny any 
+line vty 0 15
+login local
+transport input ssh
+access-class 2 in
+
+	
+
+vtp domain moharby.com
+vtp password cisco
+vtp mode client
+
+
+
+int r f0/1-2
+switchport mode trunk
+no shutdown
+
+
+int r f0/3-20
+switchport mode access 
+switchport access vlan 60
+no shutdown
+
+int r f0/21-24
+switchport mode access 
+switchport access vlan 50
+spanning-tree portfast
+spanning-tree bpduguard enable
+no shutdown
+
+exit
+
+
+int r g0/1-2
+switchport mode access 
+switchport access vlan 199
+shutdown
+
+
+-- spanning tree , portfast and BPDUguard
+
+spanning-tree mode pvst
+
+int r f0/2-24
+spanning-tree portfast
+
+spanning-tree bpduguard enable
+
+
+
+
+
+
+
+
+
+**********    BRANCH    FIREWALL      ********************
+
+
+
+object network INSIDE1b-OUTSIDE
+subnet 172.17.0.0 255.255.0.0
+nat (INSIDE1,OUTSIDE) dynamic interface
+object network INSIDE1c-OUTSIDE
+subnet 10.11.0.0 255.255.0.0
+nat (INSIDE1,OUTSIDE) dynamic interface
+object network INSIDE22-OUTSIDE
+subnet 10.11.0.0 255.255.0.0
+nat (INSIDE2,OUTSIDE) dynamic interface
+object network INSIDE2b-OUTSIDE
+subnet 172.17.0.0 255.255.0.0
+nat (INSIDE2,OUTSIDE) dynamic interface
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+*********************        ISP ROUTER1           ***********************
+
